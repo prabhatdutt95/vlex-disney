@@ -1,4 +1,3 @@
-// src/components/disney-card.ts
 import { LitElement, html, css } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
 import type { DisneyCharacter } from "../interfaces/DisneyCharacter";
@@ -6,14 +5,18 @@ import type { DisneyCharacter } from "../interfaces/DisneyCharacter";
 @customElement("disney-card")
 export class DisneyCard extends LitElement {
   @property({ type: Object }) character!: DisneyCharacter;
+  @property({ type: Boolean }) isFavorite = false;
+
   @state() private open = false;
 
-  @query(".dialog") private dialogEl!: HTMLElement;
+  @query(".dialog") private dialogEl?: HTMLElement | null;
+
   private lastFocusedElement: HTMLElement | null = null;
 
   static styles = css`
     /* Card */
     .card {
+      position: relative;
       border-radius: 12px;
       overflow: hidden;
       background: #fff;
@@ -150,6 +153,25 @@ export class DisneyCard extends LitElement {
         opacity: 1;
       }
     }
+
+    .favorite-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .favorite-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .favorite-btn[aria-pressed="true"] {
+      color: red;
+    }
   `;
 
   private toggleDialog(open: boolean) {
@@ -188,6 +210,24 @@ export class DisneyCard extends LitElement {
     }
   };
 
+  private _onToggleFavorite(e: Event) {
+    e.stopPropagation();
+    this.dispatchEvent(
+      new CustomEvent("toggle-favorite", {
+        detail: { id: String(this.character._id) },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  private _onFavoriteKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      this._onToggleFavorite(e);
+    }
+  }
+
   render() {
     const { name, imageUrl, films, tvShows, videoGames, parkAttractions } =
       this.character;
@@ -209,6 +249,20 @@ export class DisneyCard extends LitElement {
         role="button"
         aria-label="Open ${name} details"
       >
+        <button
+          class="favorite-btn"
+          @click=${(e: Event) => {
+            e.stopPropagation();
+            this._onToggleFavorite(e);
+          }}
+          @keydown=${this._onFavoriteKeydown}
+          aria-label=${this.isFavorite
+            ? `Remove ${name} from favorites`
+            : `Add ${name} to favorites`}
+          aria-pressed=${this.isFavorite ? "true" : "false"}
+        >
+          ${this.isFavorite ? "❤️" : "🤍"}
+        </button>
         <div class="header">${name}</div>
         <div class="image">
           ${imageUrl

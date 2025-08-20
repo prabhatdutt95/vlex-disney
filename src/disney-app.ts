@@ -10,10 +10,24 @@ import "./components/disney-card";
 
 // Service + Interfaces
 import { fetchCharacters } from "./services/disney-api";
+import { FavoritesService } from "./services/favorites-service";
+
 import type { DisneyCharacter } from "./interfaces/DisneyCharacter";
 
 @customElement("disney-app")
 export class DisneyApp extends LitElement {
+  @state() private characters: DisneyCharacter[] = [];
+  @state() private filtered: DisneyCharacter[] = [];
+
+  @state() private films: string[] = [];
+  @state() private tvShows: string[] = [];
+  @state() private videoGames: string[] = [];
+
+  @state() loading: boolean = false;
+  @state() error: string | null = null;
+
+  @state() private favorites: string[] = [];
+
   static styles = css`
     :host {
       display: block;
@@ -31,19 +45,10 @@ export class DisneyApp extends LitElement {
     }
   `;
 
-  @state() private characters: DisneyCharacter[] = [];
-  @state() private filtered: DisneyCharacter[] = [];
-
-  @state() private films: string[] = [];
-  @state() private tvShows: string[] = [];
-  @state() private videoGames: string[] = [];
-
-  @state() loading: boolean = false;
-  @state() error: string | null = null;
-
   connectedCallback() {
     super.connectedCallback();
     this.loadCharacters();
+    this.loadFavorites();
   }
 
   async loadCharacters() {
@@ -68,6 +73,17 @@ export class DisneyApp extends LitElement {
     this.videoGames = [...new Set(data.flatMap((c) => c.videoGames))].filter(
       Boolean
     );
+  }
+
+  private loadFavorites() {
+    this.favorites = FavoritesService.getFavorites();
+  }
+
+  private handleToggleFavorite(e: CustomEvent<{ id: string }>) {
+    const id = e.detail.id;
+
+    FavoritesService.toggleFavorite(id);
+    this.favorites = FavoritesService.getFavorites();
   }
 
   private handleFilters(e: CustomEvent) {
@@ -97,7 +113,11 @@ export class DisneyApp extends LitElement {
 
       <div class="card-grid">
         ${this.filtered.map(
-          (c) => html`<disney-card .character=${c}></disney-card>`
+          (c) => html`<disney-card
+            .character=${c}
+            .isFavorite=${this.favorites.includes(String(c._id))}
+            @toggle-favorite=${this.handleToggleFavorite}
+          ></disney-card>`
         )}
       </div>
     `;
