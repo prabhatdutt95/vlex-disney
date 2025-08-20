@@ -6,6 +6,7 @@ import { customElement, state } from "lit/decorators.js";
 import "./components/disney-search";
 import "./components/disney-loading";
 import "./components/disney-error";
+import "./components/disney-card";
 
 // Service + Interfaces
 import { fetchCharacters } from "./services/disney-api";
@@ -23,13 +24,10 @@ export class DisneyApp extends LitElement {
       font-size: 1.5rem;
       margin-bottom: 1rem;
     }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      padding: 0.5rem;
-      border-bottom: 1px solid #ddd;
+    .card-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
     }
   `;
 
@@ -97,16 +95,11 @@ export class DisneyApp extends LitElement {
         @filters-changed=${this.handleFilters}
       ></disney-search>
 
-      <ul>
+      <div class="card-grid">
         ${this.filtered.map(
-          (c) => html`
-            <li>
-              <img src=${c.imageUrl} width="40" />
-              ${c.name}
-            </li>
-          `
+          (c) => html`<disney-card .character=${c}></disney-card>`
         )}
-      </ul>
+      </div>
     `;
   }
 }
