@@ -5,7 +5,7 @@ import { customElement, state } from "lit/decorators.js";
 // Component, Service, Interfaces
 import { fetchCharacters } from "./services/disney-api";
 import type { DisneyCharacter } from "./interfaces/DisneyCharacter";
-import { DisneySearch } from "./components/disney-search";
+import "./components/disney-search";
 
 @customElement("disney-app")
 export class DisneyApp extends LitElement {
@@ -29,33 +29,56 @@ export class DisneyApp extends LitElement {
     }
   `;
 
-  @state()
-  private characters: DisneyCharacter[] = [];
+  @state() private characters: DisneyCharacter[] = [];
+  @state() private filtered: DisneyCharacter[] = [];
 
-  connectedCallback() {
-    super.connectedCallback();
-    this.loadCharacters();
-  }
+  @state() private films: string[] = [];
+  @state() private tvShows: string[] = [];
+  @state() private videoGames: string[] = [];
 
-  async loadCharacters() {
-    this.characters = await fetchCharacters();
+  async firstUpdated() {
+    const data = await fetchCharacters();
+    this.characters = data;
+    this.filtered = data;
+
+    this.films = [...new Set(data.flatMap((c) => c.films))].filter(Boolean);
+    this.tvShows = [...new Set(data.flatMap((c) => c.tvShows))].filter(Boolean);
+    this.videoGames = [...new Set(data.flatMap((c) => c.videoGames))].filter(
+      Boolean
+    );
   }
 
   private handleFilters(e: CustomEvent) {
-    const { query, franchise } = e.detail;
-    console.log("Filters:", query, franchise);
+    const { name, film, tvShow, videoGame } = e.detail;
 
-    // Filter logic
+    this.filtered = this.characters.filter(
+      (c) =>
+        (!name || c.name.toLowerCase().includes(name.toLowerCase())) &&
+        (!film || c.films.includes(film)) &&
+        (!tvShow || c.tvShows.includes(tvShow)) &&
+        (!videoGame || c.videoGames.includes(videoGame))
+    );
   }
 
   render() {
     return html`
       <h1>Disney Character Explorer</h1>
-      <disney-search @filters-changed=${this.handleFilters}></disney-search>
+      <disney-search
+        .films=${this.films}
+        .tvShows=${this.tvShows}
+        .videoGames=${this.videoGames}
+        @filters-changed=${this.handleFilters}
+      ></disney-search>
+
       <ul>
-        ${this.characters.length > 0
-          ? this.characters.map((char) => html`<li>${char.name}</li>`)
-          : html`<li>Loading characters...</li>`}
+        ${this.filtered.map(
+          (c) => html`
+            <li>
+              <img src=${c.imageUrl} width="40" />
+              ${c.name}
+            </li>
+          `
+        )}
       </ul>
     `;
   }

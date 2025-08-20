@@ -3,14 +3,14 @@ import { customElement, property, state } from "lit/decorators.js";
 
 @customElement("disney-search")
 export class DisneySearch extends LitElement {
-  @property({ type: Array }) franchises: string[] = [];
-  @property({ type: Array }) roles: string[] = [];
-  @property({ type: Array }) eras: string[] = [];
+  @property({ type: Array }) films: string[] = [];
+  @property({ type: Array }) tvShows: string[] = [];
+  @property({ type: Array }) videoGames: string[] = [];
 
   @state() private name: string = "";
-  @state() private franchise: string = "";
-  @state() private characterRole: string = "";
-  @state() private era: string = "";
+  @state() private film: string = "";
+  @state() private tvShow: string = "";
+  @state() private videoGame: string = "";
 
   static styles = css`
     .filters {
@@ -34,14 +34,14 @@ export class DisneySearch extends LitElement {
       case "name":
         this.name = target.value;
         break;
-      case "franchise":
-        this.franchise = target.value;
+      case "film":
+        this.film = target.value;
         break;
-      case "role":
-        this.characterRole = target.value;
+      case "tvShow":
+        this.tvShow = target.value;
         break;
-      case "era":
-        this.era = target.value;
+      case "videoGame":
+        this.videoGame = target.value;
         break;
     }
 
@@ -51,9 +51,9 @@ export class DisneySearch extends LitElement {
   private emitFilters() {
     const filters = {
       name: this.name,
-      franchise: this.franchise,
-      role: this.characterRole,
-      era: this.era,
+      film: this.film,
+      tvShow: this.tvShow,
+      videoGame: this.videoGame,
     };
     this.dispatchEvent(
       new CustomEvent("filters-changed", {
@@ -75,27 +75,23 @@ export class DisneySearch extends LitElement {
           @input=${this.onInput}
         />
 
-        <select
-          name="franchise"
-          .value=${this.franchise}
-          @change=${this.onInput}
-        >
-          <option value="">All Franchises</option>
-          ${this.franchises.map((f) => html`<option value=${f}>${f}</option>`)}
+        <select name="film" .value=${this.film} @change=${this.onInput}>
+          <option value="">All Films</option>
+          ${this.films.map((f) => html`<option value=${f}>${f}</option>`)}
+        </select>
+
+        <select name="tvShow" .value=${this.tvShow} @change=${this.onInput}>
+          <option value="">All TV Shows</option>
+          ${this.tvShows.map((s) => html`<option value=${s}>${s}</option>`)}
         </select>
 
         <select
-          name="role"
-          .value=${this.characterRole}
+          name="videoGame"
+          .value=${this.videoGame}
           @change=${this.onInput}
         >
-          <option value="">All Roles</option>
-          ${this.roles.map((r) => html`<option value=${r}>${r}</option>`)}
-        </select>
-
-        <select name="era" .value=${this.era} @change=${this.onInput}>
-          <option value="">All Eras</option>
-          ${this.eras.map((e) => html`<option value=${e}>${e}</option>`)}
+          <option value="">All Video Games</option>
+          ${this.videoGames.map((g) => html`<option value=${g}>${g}</option>`)}
         </select>
       </div>
     `;
