@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 @customElement("disney-search")
@@ -6,6 +6,12 @@ export class DisneySearch extends LitElement {
   @property({ type: Array }) films: string[] = [];
   @property({ type: Array }) tvShows: string[] = [];
   @property({ type: Array }) videoGames: string[] = [];
+  @property({ type: Object }) activeFilters: {
+    name?: string;
+    film?: string;
+    tvShow?: string;
+    videoGame?: string;
+  } = {};
 
   @state() private name: string = "";
   @state() private film: string = "";
@@ -26,6 +32,15 @@ export class DisneySearch extends LitElement {
       border: 1px solid #ccc;
     }
   `;
+
+  protected updated(changedProps: PropertyValues) {
+    if (changedProps.has("activeFilters")) {
+      this.name = this.activeFilters.name || "";
+      this.film = this.activeFilters.film || "";
+      this.tvShow = this.activeFilters.tvShow || "";
+      this.videoGame = this.activeFilters.videoGame || "";
+    }
+  }
 
   private onInput(e: Event) {
     const target = e.target as HTMLInputElement | HTMLSelectElement;
