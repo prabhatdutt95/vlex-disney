@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
 import type { DisneyCharacter } from "../interfaces/DisneyCharacter";
+import { SEOUtils } from "../seo-utils";
 
 @customElement("disney-card")
 export class DisneyCard extends LitElement {
@@ -182,10 +183,47 @@ export class DisneyCard extends LitElement {
         this.dialogEl?.focus();
         document.addEventListener("keydown", this.handleKeyDown);
       });
+
+      SEOUtils.setMeta(
+        `${this.character.name} | Disney Characters`,
+        `${this.character.name} appears in ${
+          this.character.films?.join(", ") || "various works"
+        }.`,
+        `${window.location.origin}/characters/${encodeURIComponent(
+          this.character.name
+        )}`
+      );
+
+      SEOUtils.setStructuredData({
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: this.character.name,
+        description: `Disney character known from: ${
+          this.character.films?.join(", ") || "N/A"
+        }`,
+        url: `${window.location.origin}/characters/${encodeURIComponent(
+          this.character.name
+        )}`,
+        image: this.character.imageUrl,
+      });
     } else {
       this.open = false;
       document.removeEventListener("keydown", this.handleKeyDown);
       this.lastFocusedElement?.focus();
+      SEOUtils.setMeta(
+        "Disney Characters Directory",
+        "Search and explore your favorite Disney characters.",
+        window.location.origin
+      );
+
+      SEOUtils.setStructuredData({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "Disney Character Search",
+        url: window.location.href,
+        description:
+          "Browse Disney characters from films, TV shows, and games.",
+      });
     }
   }
 
@@ -214,7 +252,7 @@ export class DisneyCard extends LitElement {
     e.stopPropagation();
     this.dispatchEvent(
       new CustomEvent("toggle-favorite", {
-        detail: { id: String(this.character._id) },
+        detail: { id: this.character },
         bubbles: true,
         composed: true,
       })

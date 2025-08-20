@@ -13,6 +13,7 @@ import { fetchCharacters } from "./services/disney-api";
 import { FavoritesService } from "./services/favorites-service";
 
 import type { DisneyCharacter } from "./interfaces/DisneyCharacter";
+import { SEOUtils } from "./seo-utils";
 
 @customElement("disney-app")
 export class DisneyApp extends LitElement {
@@ -96,10 +97,29 @@ export class DisneyApp extends LitElement {
     this.favorites = FavoritesService.getFavorites();
   }
 
-  private handleToggleFavorite(e: CustomEvent<{ id: string }>) {
+  private handleToggleFavorite(e: CustomEvent) {
     const id = e.detail.id;
     FavoritesService.toggleFavorite(id);
     this.favorites = FavoritesService.getFavorites();
+
+    const char = e.detail.character;
+    SEOUtils.setMeta(
+      `${char.name} | Disney Characters`,
+      `${char.name} appears in ${char.films?.join(", ") || "various works"}.`,
+      `${window.location.origin}/characters/${encodeURIComponent(char.name)}`
+    );
+    SEOUtils.setStructuredData({
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: char.name,
+      description: `Disney character known from: ${
+        char.films?.join(", ") || "N/A"
+      }`,
+      url: `${window.location.origin}/characters/${encodeURIComponent(
+        char.name
+      )}`,
+      image: char.imageUrl,
+    });
   }
 
   private handleFilters(e: CustomEvent) {
