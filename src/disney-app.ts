@@ -8,10 +8,11 @@ import "./components/disney-loading";
 import "./components/disney-error";
 import "./components/disney-card";
 
-// Service + Interfaces
+// Service
 import { fetchCharacters } from "./services/disney-api";
 import { FavoritesService } from "./services/favorites-service";
 
+// Interfaces + Utils
 import type { DisneyCharacter } from "./interfaces/DisneyCharacter";
 import { SEOUtils } from "./seo-utils";
 
@@ -98,11 +99,10 @@ export class DisneyApp extends LitElement {
   }
 
   private handleToggleFavorite(e: CustomEvent) {
-    const id = e.detail.id;
-    FavoritesService.toggleFavorite(id);
+    const char = e.detail as DisneyCharacter;
+    FavoritesService.toggleFavorite(String(char._id));
     this.favorites = FavoritesService.getFavorites();
 
-    const char = e.detail.character;
     SEOUtils.setMeta(
       `${char.name} | Disney Characters`,
       `${char.name} appears in ${char.films?.join(", ") || "various works"}.`,
@@ -183,15 +183,23 @@ export class DisneyApp extends LitElement {
         @filters-changed=${this.handleFilters}
       ></disney-search>
 
-      <div class="card-grid">
-        ${this.filtered.map(
-          (c) => html`<disney-card
-            .character=${c}
-            .isFavorite=${this.favorites.includes(String(c._id))}
-            @toggle-favorite=${this.handleToggleFavorite}
-          ></disney-card>`
-        )}
-      </div>
+      ${this.filtered.length === 0
+        ? html`
+            <p role="status" style="text-align:center; margin-top:2rem;">
+              No characters found matching your filters.
+            </p>
+          `
+        : html`
+            <div class="card-grid">
+              ${this.filtered.map(
+                (c) => html`<disney-card
+                  .character=${c}
+                  .isFavorite=${this.favorites.includes(String(c._id))}
+                  @toggle-favorite=${this.handleToggleFavorite}
+                ></disney-card>`
+              )}
+            </div>
+          `}
     `;
   }
 }
