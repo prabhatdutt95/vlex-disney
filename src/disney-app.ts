@@ -2,10 +2,14 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 
-// Component, Service, Interfaces
+// Components
+import "./components/disney-search";
+import "./components/disney-loading";
+import "./components/disney-error";
+
+// Service + Interfaces
 import { fetchCharacters } from "./services/disney-api";
 import type { DisneyCharacter } from "./interfaces/DisneyCharacter";
-import "./components/disney-search";
 
 @customElement("disney-app")
 export class DisneyApp extends LitElement {
@@ -36,7 +40,27 @@ export class DisneyApp extends LitElement {
   @state() private tvShows: string[] = [];
   @state() private videoGames: string[] = [];
 
-  async firstUpdated() {
+  @state() loading: boolean = false;
+  @state() error: string | null = null;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.loadCharacters();
+  }
+
+  async loadCharacters() {
+    this.loading = true;
+    this.error = null;
+    try {
+      await this.initializeData();
+    } catch (err) {
+      this.error = "Failed to load Disney characters. Please try again.";
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async initializeData() {
     const data = await fetchCharacters();
     this.characters = data;
     this.filtered = data;
@@ -61,6 +85,9 @@ export class DisneyApp extends LitElement {
   }
 
   render() {
+    if (this.loading) return html`<disney-loading></disney-loading>`;
+    if (this.error) return html`<disney-error></disney-error>`;
+
     return html`
       <h1>Disney Character Explorer</h1>
       <disney-search
